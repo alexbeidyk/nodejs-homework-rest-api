@@ -6,7 +6,7 @@ const {
   removeContact,
   addContact,
   updateContact,
-} = require('../../model');
+} = require('../../models');
 const contactsSchema = require('../../utils/validate/contacts');
 
 // @ GET /api/contacts
