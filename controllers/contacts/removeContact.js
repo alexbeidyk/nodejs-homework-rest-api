@@ -1,24 +1,24 @@
-const contact = require('../../models/contactModel');
-
-module.exports = async ({ params: { contactId } }, res, _) => {
+const Contact = require('../../model/contact');
+const removeContact = async (req, res, next) => {
+  const { contactId } = req.params;
+  const userId = req.user.id;
   try {
-    const result = await contact.findByIdAndDelete(contactId);
-
-    // при несуществующем ID приходит null с "code": 200.
+    const result = await Contact.findOneAndRemove({
+      _id: contactId,
+      owner: userId,
+    });
     if (!result) {
-      throw Error;
+      throw new Error('Access denied');
     }
-
     res.json({
       status: 'success',
       code: 200,
-      message: 'Contact succesfully deleted',
+      data: {
+        result,
+      },
     });
   } catch (error) {
-    res.status(404).json({
-      status: 'not found',
-      code: 404,
-      message: 'Contact with such ID not found',
-    });
+    next(error);
   }
 };
+module.exports = removeContact;

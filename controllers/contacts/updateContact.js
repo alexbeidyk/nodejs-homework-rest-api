@@ -1,38 +1,28 @@
-const contact = require('../../models/contactModel');
-
-module.exports = async ({ body, params: { contactId } }, res, _) => {
+const Contact = require('../../model/contact');
+const updateContact = async (req, res, next) => {
+  const { contactId } = req.params;
+  const userId = req.user.id;
+  const { body } = req;
   try {
-    const result = await contact.findByIdAndUpdate(contactId, body);
-
-    // contactId
+    const result = await Contact.findOneAndUpdate(
+      { _id: contactId, owner: userId },
+      body,
+      {
+        new: true,
+      }
+    );
     if (!result) {
-      throw Error;
+      throw new Error('Access denied');
     }
-
-    // body
-    if (Object.keys(body).length === 0) {
-      throw new Error('400');
-    }
-
-    // message, т.к в result не приходит обновленный контакт.
     res.json({
       status: 'success',
       code: 200,
-      message: 'Contact succesfully updated',
+      data: {
+        result,
+      },
     });
   } catch (error) {
-    if (error.message === '400') {
-      return res.status(400).json({
-        status: 'bad request',
-        code: 400,
-        message: 'Missing the body of the request',
-      });
-    }
-
-    res.status(404).json({
-      status: 'not found',
-      code: 404,
-      message: 'Contact with such ID not found',
-    });
+    next(error);
   }
 };
+module.exports = updateContact;
