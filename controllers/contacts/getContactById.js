@@ -1,30 +1,24 @@
-const { contacts: service } = require('../../services');
-
-module.exports = async ({ params: { contactId } }, res, next) => {
+const Contact = require("../../model/contact");
+const getContactById = async (req, res, next) => {
+  const { contactId } = req.params;
+  const userId = req.user.id;
   try {
-    const result = await service.getContactById(contactId);
-
-    return result
-      ? res.json({
-          status: 'Success',
-          code: 200,
-          data: {
-            result,
-          },
-        })
-      : res.status(404).json({
-          status: 'Not Found',
-          code: 404,
-          message: 'contact with such id not found',
-        });
+    const result = await Contact.findOne({
+      _id: contactId,
+      owner: userId,
+    }).populate({
+      path: "owner",
+      select: "email subscription",
+    });
+    res.json({
+      status: "success",
+      code: 200,
+      data: {
+        result,
+      },
+    });
   } catch (error) {
-    if (error.message.includes('Cast to ObjectId failed')) {
-      return res.status(404).json({
-        status: 'Not Found',
-        code: 404,
-        message: 'contact with such id not found',
-      });
-    }
     next(error);
   }
 };
+module.exports = getContactById;

@@ -1,17 +1,21 @@
-const { contacts: service } = require('../../services');
-
-module.exports = async ({ body }, res, next) => {
+const Contact = require("../../model/contact");
+const addContact = async (req, res, next) => {
+  const { body } = req;
   try {
-    const result = await service.addContact(body);
-
-    return res.status(201).json({
-      status: 'Created',
+    const userId = req.user.id;
+    const result = await Contact.create({ ...body, owner: userId });
+    res.status(201).json({
+      status: "success",
       code: 201,
       data: {
         result,
       },
     });
   } catch (error) {
+    if (error.code === 11000) {
+      error.code = 400;
+    }
     next(error);
   }
 };
+module.exports = addContact;
